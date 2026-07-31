@@ -1,2 +1,16 @@
-.venv
-.vscode
+# Virtual environments
+.venv/
+.venv-1/
+
+# VS Code
+.vscode/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Environment variables
+.env
