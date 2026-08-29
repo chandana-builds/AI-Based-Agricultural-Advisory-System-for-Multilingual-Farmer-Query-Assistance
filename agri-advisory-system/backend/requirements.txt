@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+sqlalchemy
+pydantic
+requests
+python-multipart
+python-dotenv
+pypdf
+scikit-learn
+openai
+google-genai
+passlib
+bcrypt

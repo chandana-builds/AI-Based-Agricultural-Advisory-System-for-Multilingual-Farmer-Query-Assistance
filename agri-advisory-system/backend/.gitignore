@@ -1,0 +1,9 @@
+node_modules
+# Keep environment variables out of version control
+.env
+
+/generated/prisma
+_pycache
+
+rag_dataset_cache.pkl
+vector_store.pkl
