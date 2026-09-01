@@ -4,6 +4,77 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
+// Supported UI languages on the signup page
+const LANGUAGES = [
+  { code: 'en', label: 'English' },
+  { code: 'hi', label: 'हिंदी' },
+  { code: 'te', label: 'తెలుగు' },
+];
+
+// Static translations for the signup page labels
+const TRANSLATIONS: Record<string, Record<string, string>> = {
+  en: {
+    backToHome: '← Back to Home',
+    title: '🌾 Agri-Advisory',
+    subtitle: 'Create your farmer account',
+    firstName: 'First Name',
+    lastName: 'Last Name',
+    username: 'Username',
+    emailLabel: 'Email Address',
+    passwordLabel: 'Password',
+    passwordRequirements: 'Password Requirements:',
+    req8Chars: 'At least 8 characters',
+    reqUppercase: 'At least 1 capital letter (A-Z)',
+    reqNumber: 'At least 1 number (0-9)',
+    signUp: 'Sign Up',
+    creatingAccount: 'Creating Account...',
+    haveAccount: 'Already have an account?',
+    signIn: 'Sign in',
+    selectLanguage: 'Language',
+    passwordError: 'Please fulfill all password requirements before signing up.',
+  },
+  hi: {
+    backToHome: '← होम पर वापस',
+    title: '🌾 कृषि-सलाहकार',
+    subtitle: 'अपना किसान खाता बनाएं',
+    firstName: 'पहला नाम',
+    lastName: 'अंतिम नाम',
+    username: 'उपयोगकर्ता नाम',
+    emailLabel: 'ईमेल पता',
+    passwordLabel: 'पासवर्ड',
+    passwordRequirements: 'पासवर्ड आवश्यकताएँ:',
+    req8Chars: 'कम से कम 8 अक्षर',
+    reqUppercase: 'कम से कम 1 बड़ा अक्षर (A-Z)',
+    reqNumber: 'कम से कम 1 अंक (0-9)',
+    signUp: 'साइन अप करें',
+    creatingAccount: 'खाता बन रहा है...',
+    haveAccount: 'पहले से खाता है?',
+    signIn: 'साइन इन करें',
+    selectLanguage: 'भाषा',
+    passwordError: 'साइन अप करने से पहले कृपया सभी पासवर्ड आवश्यकताएँ पूरी करें।',
+  },
+  te: {
+    backToHome: '← హోమ్‌కు తిరిగి వెళ్ళు',
+    title: '🌾 వ్యవసాయ-సలహా',
+    subtitle: 'మీ రైతు ఖాతాను సృష్టించండి',
+    firstName: 'మొదటి పేరు',
+    lastName: 'చివరి పేరు',
+    username: 'వినియోగదారు పేరు',
+    emailLabel: 'ఇమెయిల్ చిరునామా',
+    passwordLabel: 'పాస్‌వర్డ్',
+    passwordRequirements: 'పాస్‌వర్డ్ అవసరాలు:',
+    req8Chars: 'కనీసం 8 అక్షరాలు',
+    reqUppercase: 'కనీసం 1 పెద్ద అక్షరం (A-Z)',
+    reqNumber: 'కనీసం 1 సంఖ్య (0-9)',
+    signUp: 'సైన్ అప్',
+    creatingAccount: 'ఖాతా సృష్టిస్తోంది...',
+    haveAccount: 'ఇప్పటికే ఖాతా ఉందా?',
+    signIn: 'సైన్ ఇన్',
+    selectLanguage: 'భాష',
+    passwordError: 'సైన్ అప్ చేయడానికి ముందు దయచేసి అన్ని పాస్‌వర్డ్ అవసరాలను నెరవేర్చండి.',
+  },
+};
+
 export default function SignupPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({
@@ -15,6 +86,9 @@ export default function SignupPage() {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [language, setLanguage] = useState('en');
+
+  const t = TRANSLATIONS[language] || TRANSLATIONS.en;
 
   // Password validation checks
   const password = formData.password;
@@ -32,7 +106,7 @@ export default function SignupPage() {
     setError('');
 
     if (!isPasswordValid) {
-      setError('Please fulfill all password requirements before signing up.');
+      setError(t.passwordError);
       return;
     }
 
@@ -55,6 +129,9 @@ export default function SignupPage() {
         throw new Error(data.error || data.detail || 'Failed to create account');
       }
 
+      // Persist chosen language so the dashboard can pick it up after login
+      localStorage.setItem('preferredLanguage', language);
+
       // Redirect to the login page upon successful account creation
       router.push('/login');
     } catch (err: any) {
@@ -67,18 +144,36 @@ export default function SignupPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-green-50 px-4 py-8">
       <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8 border border-green-100">
-        
-        {/* Back to Home Button */}
-        <Link 
-          href="/" 
-          className="inline-flex items-center text-sm font-semibold text-green-700 hover:text-green-900 mb-6 transition"
-        >
-          ← Back to Home
-        </Link>
+
+        {/* Top row: Back to Home + Language Selector */}
+        <div className="flex justify-between items-center mb-6">
+          <Link
+            href="/"
+            className="inline-flex items-center text-sm font-semibold text-green-700 hover:text-green-900 transition"
+          >
+            {t.backToHome}
+          </Link>
+
+          {/* Language Dropdown */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-500 font-medium">🌐 {t.selectLanguage}:</span>
+            <select
+              value={language}
+              onChange={(e) => setLanguage(e.target.value)}
+              className="px-2 py-1 rounded-lg text-sm font-medium border border-gray-300 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-400"
+            >
+              {LANGUAGES.map((lang) => (
+                <option key={lang.code} value={lang.code}>
+                  {lang.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
 
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-green-800">🌾 Agri-Advisory</h1>
-          <p className="text-gray-600 mt-2">Create your farmer account</p>
+          <h1 className="text-3xl font-bold text-green-800">{t.title}</h1>
+          <p className="text-gray-600 mt-2">{t.subtitle}</p>
         </div>
 
         {error && (
@@ -90,7 +185,7 @@ export default function SignupPage() {
         <form onSubmit={handleSignup} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t.firstName}</label>
               <input
                 type="text"
                 name="firstName"
@@ -102,7 +197,7 @@ export default function SignupPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t.lastName}</label>
               <input
                 type="text"
                 name="lastName"
@@ -116,7 +211,7 @@ export default function SignupPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t.username}</label>
             <input
               type="text"
               name="username"
@@ -129,7 +224,7 @@ export default function SignupPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t.emailLabel}</label>
             <input
               type="email"
               name="email"
@@ -142,7 +237,7 @@ export default function SignupPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t.passwordLabel}</label>
             <input
               type="password"
               name="password"
@@ -155,27 +250,27 @@ export default function SignupPage() {
 
             {/* Live Password Validation Requirement Checklist */}
             <div className="mt-3 space-y-1.5 p-3 bg-gray-50 rounded-lg border border-gray-200 text-xs">
-              <p className="font-semibold text-gray-700 mb-1">Password Requirements:</p>
-              
+              <p className="font-semibold text-gray-700 mb-1">{t.passwordRequirements}</p>
+
               <div className={`flex items-center gap-2 transition-colors duration-200 ${hasMinLength ? 'text-green-600 font-semibold' : 'text-gray-500'}`}>
                 <span className={`w-4 h-4 flex items-center justify-center rounded-full text-[10px] ${hasMinLength ? 'bg-green-600 text-white shadow-sm shadow-green-200' : 'bg-gray-200 text-gray-500'}`}>
                   {hasMinLength ? '✓' : '•'}
                 </span>
-                At least 8 characters
+                {t.req8Chars}
               </div>
 
               <div className={`flex items-center gap-2 transition-colors duration-200 ${hasUppercase ? 'text-green-600 font-semibold' : 'text-gray-500'}`}>
                 <span className={`w-4 h-4 flex items-center justify-center rounded-full text-[10px] ${hasUppercase ? 'bg-green-600 text-white shadow-sm shadow-green-200' : 'bg-gray-200 text-gray-500'}`}>
                   {hasUppercase ? '✓' : '•'}
                 </span>
-                At least 1 capital letter (A-Z)
+                {t.reqUppercase}
               </div>
 
               <div className={`flex items-center gap-2 transition-colors duration-200 ${hasNumber ? 'text-green-600 font-semibold' : 'text-gray-500'}`}>
                 <span className={`w-4 h-4 flex items-center justify-center rounded-full text-[10px] ${hasNumber ? 'bg-green-600 text-white shadow-sm shadow-green-200' : 'bg-gray-200 text-gray-500'}`}>
                   {hasNumber ? '✓' : '•'}
                 </span>
-                At least 1 number (0-9)
+                {t.reqNumber}
               </div>
             </div>
           </div>
@@ -185,14 +280,14 @@ export default function SignupPage() {
             disabled={loading || !isPasswordValid}
             className="w-full bg-green-600 text-white py-2.5 rounded-lg font-semibold hover:bg-green-700 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Creating Account...' : 'Sign Up'}
+            {loading ? t.creatingAccount : t.signUp}
           </button>
         </form>
 
         <p className="text-center text-sm text-gray-600 mt-6">
-          Already have an account?{' '}
+          {t.haveAccount}{' '}
           <Link href="/login" className="text-green-600 font-semibold hover:underline">
-            Sign in
+            {t.signIn}
           </Link>
         </p>
       </div>

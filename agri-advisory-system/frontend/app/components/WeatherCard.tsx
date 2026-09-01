@@ -211,21 +211,6 @@ export default function WeatherCard({ darkMode = false }: WeatherCardProps) {
         </div>
       </div>
 
-      {/* Interactive Map Frame */}
-      <div>
-        <h3 className="font-semibold text-sm text-gray-400 mb-3">Interactive Farm Map Visualizer</h3>
-        <div className="w-full h-56 rounded-xl overflow-hidden border border-gray-700 shadow-sm">
-          <iframe
-            title="Dynamic Location Map"
-            width="100%"
-            height="100%"
-            frameBorder="0"
-            scrolling="no"
-            src={`https://maps.google.com/maps?q=${encodeURIComponent(weatherInfo.city)}&t=&z=13&ie=UTF8&iwloc=&output=embed`}
-          ></iframe>
-        </div>
-      </div>
-
     </div>
   );
 }

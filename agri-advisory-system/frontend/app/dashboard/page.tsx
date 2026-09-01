@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { fetchCropMarketDetails } from '@/services/cropApi';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import ChatInterface from './chat/ChatInterface';
 
 interface User {
@@ -31,6 +31,9 @@ export default function DashboardPage() {
   
   // Full-page ChatInterface overlay state
   const [isChatOpen, setIsChatOpen] = useState(false);
+  
+  // Mandi Financial chart timeframe: 'today' | 'yesterday' | 'week' | 'threeMonths'
+  const [mandiTimeframe, setMandiTimeframe] = useState<'today' | 'yesterday' | 'week' | 'threeMonths'>('week');
 
   // Default English text dictionary for dashboard
   const defaultTexts = {
@@ -47,14 +50,14 @@ export default function DashboardPage() {
     feat3Desc: "Access structured recommendations tailored to regional farming guidelines, fertilizer schedules, and seasonal tips.",
     feat4Title: "Mandi Market Prices",
     feat4Desc: "Check regional commodity pricing, top-selling crops, and historical price comparisons from past weeks and months.",
-    feat5Title: "Weather Forecasting & Maps",
-    feat5Desc: "Locate your exact farm on maps, detect coordinates automatically, and pull live weather forecasting data from real APIs.",
+    feat5Title: "Weather Forecasting",
+    feat5Desc: "Check local temperature, wind speed, humidity, and rainfall expectations with real-time forecasting data from Open-Meteo.",
     profileTitle: "Farmer Profile & Settings",
     backToOverview: "← Back to Overview",
     updateDetails: "Update Details",
     resetPassword: "Reset Password",
     updatePassword: "Update Password",
-    weatherTitle: "Real-Time Weather Forecasting & Location Map",
+    weatherTitle: "Real-Time Weather Forecasting",
     weatherDesc: "Search your farm location or city to fetch live weather data via Open-Meteo API.",
     searchLocation: "Search Location",
     temperature: "Temperature",
@@ -69,9 +72,19 @@ export default function DashboardPage() {
     selectedCommodity: "Selected Commodity",
     todaysRate: "Today's Live Rate",
     nationalAvg: "National Average Range",
-    telanganaAvg: "Telangana Regional Rate",
-    warangalLocal: "Warangal Local APMC",
+    stateRate: "State / Regional Rate",
+    localAPMC: "Local APMC / Mandi Rate",
     historicalTrends: "Historical Price Trends (API Verified)",
+    financialGraphTitle: "Financial Market Price Trends & Volatility Chart",
+    timeframeToday: "Today (Intraday)",
+    timeframeYesterday: "Yesterday",
+    timeframeWeek: "Last Week (7 Days)",
+    timeframe3Months: "Last 3 Months (12 Weeks)",
+    periodHigh: "High",
+    periodLow: "Low",
+    priceTrend: "Price Trend",
+    enterStatePlaceholder: "Enter state (e.g. Punjab)",
+    enterLocalPlaceholder: "Enter local mandi / APMC (e.g. Ludhiana)",
     topSellingHeader: "🔥 Top Selling Crops in Regional Mandi Markets",
     soilTitle: "Crop & Soil Health Recommendations",
     fertilizerHeader: "Recommended Fertilizer Schedule",
@@ -149,8 +162,10 @@ export default function DashboardPage() {
   });
   const [hourlyData, setHourlyData] = useState<HourlyPoint[]>([]);
 
-  // Market feature states[cite: 1]
+  // Market feature states
   const [searchCommodity, setSearchCommodity] = useState('carrot');
+  const [searchState, setSearchState] = useState('');
+  const [searchLocalPlace, setSearchLocalPlace] = useState('');
   const [cropData, setCropData] = useState<any>(null);
   const [loadingCrop, setLoadingCrop] = useState(false);
 
@@ -368,7 +383,7 @@ export default function DashboardPage() {
     }
   };
 
-  // Handle live crop search submission[cite: 1]
+  // Handle live crop search submission
   const handleCropSearch = async (e?: React.FormEvent, customCrop?: string) => {
     if (e) e.preventDefault();
     const commodityToFetch = customCrop || searchCommodity;
@@ -376,7 +391,11 @@ export default function DashboardPage() {
 
     setLoadingCrop(true);
     setSearchCommodity(commodityToFetch);
-    const data = await fetchCropMarketDetails(commodityToFetch);
+    const data = await fetchCropMarketDetails(
+      commodityToFetch,
+      searchState,
+      searchLocalPlace
+    );
     setCropData(data);
     setLoadingCrop(false);
   };
@@ -730,20 +749,6 @@ export default function DashboardPage() {
                 )}
               </div>
             </div>
-
-            <div>
-              <h3 className="font-semibold text-sm text-gray-400 mb-3">{t.interactiveMap}</h3>
-              <div className="w-full h-56 rounded-xl overflow-hidden border border-gray-700 shadow-sm">
-                <iframe
-                  title="Dynamic Location Map"
-                  width="100%"
-                  height="100%"
-                  frameBorder="0"
-                  scrolling="no"
-                  src={`https://maps.google.com/maps?q=${encodeURIComponent(weatherInfo.city)}&t=&z=13&ie=UTF8&iwloc=&output=embed`}
-                ></iframe>
-              </div>
-            </div>
           </div>
         )}
 
@@ -763,21 +768,41 @@ export default function DashboardPage() {
               </button>
             </div>
 
-            <form onSubmit={handleCropSearch} className="flex gap-3 mb-8">
-              <input
-                type="text"
-                value={searchCommodity}
-                onChange={(e) => setSearchCommodity(e.target.value)}
-                placeholder="Enter any crop name..."
-                className={`flex-1 px-4 py-3 rounded-xl border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300 bg-gray-50'} focus:outline-none focus:ring-2 focus:ring-green-500 font-medium`}
-              />
-              <button
-                type="submit"
-                disabled={loadingCrop}
-                className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl font-semibold transition shadow-md disabled:opacity-50"
-              >
-                {loadingCrop ? 'Fetching Live Rates...' : t.getPriceTrends}
-              </button>
+            <form onSubmit={handleCropSearch} className="space-y-3 mb-8">
+              {/* Row 1: Crop Name */}
+              <div className="flex gap-3">
+                <input
+                  type="text"
+                  value={searchCommodity}
+                  onChange={(e) => setSearchCommodity(e.target.value)}
+                  placeholder="Enter any crop name (e.g. wheat, rice, cotton)..."
+                  className={`flex-1 px-4 py-3 rounded-xl border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300 bg-gray-50'} focus:outline-none focus:ring-2 focus:ring-green-500 font-medium`}
+                />
+              </div>
+              {/* Row 2: State + Local Place */}
+              <div className="flex gap-3">
+                <input
+                  type="text"
+                  value={searchState}
+                  onChange={(e) => setSearchState(e.target.value)}
+                  placeholder={t.enterStatePlaceholder}
+                  className={`flex-1 px-4 py-3 rounded-xl border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300 bg-gray-50'} focus:outline-none focus:ring-2 focus:ring-green-400 font-medium`}
+                />
+                <input
+                  type="text"
+                  value={searchLocalPlace}
+                  onChange={(e) => setSearchLocalPlace(e.target.value)}
+                  placeholder={t.enterLocalPlaceholder}
+                  className={`flex-1 px-4 py-3 rounded-xl border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300 bg-gray-50'} focus:outline-none focus:ring-2 focus:ring-green-400 font-medium`}
+                />
+                <button
+                  type="submit"
+                  disabled={loadingCrop}
+                  className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl font-semibold transition shadow-md disabled:opacity-50 whitespace-nowrap"
+                >
+                  {loadingCrop ? 'Fetching Live Rates...' : t.getPriceTrends}
+                </button>
+              </div>
             </form>
 
             {cropData ? (
@@ -800,13 +825,146 @@ export default function DashboardPage() {
                     <p className="text-lg font-bold mt-1">{cropData.nationalAvg}</p>
                   </div>
                   <div className={`p-4 border rounded-xl ${darkMode ? 'bg-gray-700 border-gray-600' : 'bg-slate-50'}`}>
-                    <p className="text-xs text-slate-400 font-medium">{t.telanganaAvg}</p>
-                    <p className="text-lg font-bold mt-1">{cropData.telanganaAvg}</p>
+                    <p className="text-xs text-slate-400 font-medium">
+                      {cropData.stateLabel} {t.stateRate}
+                    </p>
+                    <p className="text-lg font-bold mt-1">{cropData.stateAvg}</p>
                   </div>
                   <div className={`p-4 border rounded-xl ${darkMode ? 'bg-gray-700 border-gray-600' : 'bg-slate-50'}`}>
-                    <p className="text-xs text-slate-400 font-medium">{t.warangalLocal}</p>
-                    <p className="text-lg font-bold mt-1">{cropData.localWarangal} / Quintal</p>
+                    <p className="text-xs text-slate-400 font-medium">
+                      {cropData.localLabel} {t.localAPMC}
+                    </p>
+                    <p className="text-lg font-bold mt-1">{cropData.localRate} / Quintal</p>
                   </div>
+                </div>
+
+                {/* Financial Price Trend Interactive Chart */}
+                <div className={`p-6 rounded-2xl border shadow-inner ${darkMode ? 'bg-slate-900 border-gray-700' : 'bg-slate-900 text-white'}`}>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl">📊</span>
+                        <h3 className="font-bold text-base text-white">{t.financialGraphTitle}</h3>
+                      </div>
+                      <p className="text-xs text-slate-400 mt-0.5">
+                        Interactive price curve for <strong className="text-green-400">{cropData.name}</strong> ({cropData.unit})
+                      </p>
+                    </div>
+
+                    {/* Timeframe selector tabs */}
+                    <div className="flex flex-wrap bg-slate-800 p-1 rounded-xl border border-slate-700 text-xs font-semibold self-start sm:self-auto gap-1">
+                      {[
+                        { id: 'today', label: t.timeframeToday },
+                        { id: 'yesterday', label: t.timeframeYesterday },
+                        { id: 'week', label: t.timeframeWeek },
+                        { id: 'threeMonths', label: t.timeframe3Months },
+                      ].map((tab) => (
+                        <button
+                          key={tab.id}
+                          type="button"
+                          onClick={() => setMandiTimeframe(tab.id as any)}
+                          className={`px-3 py-1.5 rounded-lg transition ${
+                            mandiTimeframe === tab.id
+                              ? 'bg-green-600 text-white shadow'
+                              : 'text-slate-400 hover:text-white'
+                          }`}
+                        >
+                          {tab.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Period Stats Summary Bar */}
+                  {(() => {
+                    const activeTf = cropData.chartTimeframes?.[mandiTimeframe] || {
+                      points: [],
+                      change: '+1.8%',
+                      high: cropData.liveRate,
+                      low: cropData.liveRate - 100,
+                    };
+                    return (
+                      <>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+                          <div className="bg-slate-800/80 p-3 rounded-xl border border-slate-700">
+                            <span className="text-[11px] text-slate-400 font-medium block">{t.periodHigh}</span>
+                            <span className="text-base font-bold text-green-400">
+                              ₹{activeTf.high?.toLocaleString()}
+                            </span>
+                          </div>
+                          <div className="bg-slate-800/80 p-3 rounded-xl border border-slate-700">
+                            <span className="text-[11px] text-slate-400 font-medium block">{t.periodLow}</span>
+                            <span className="text-base font-bold text-amber-400">
+                              ₹{activeTf.low?.toLocaleString()}
+                            </span>
+                          </div>
+                          <div className="bg-slate-800/80 p-3 rounded-xl border border-slate-700">
+                            <span className="text-[11px] text-slate-400 font-medium block">{t.priceTrend}</span>
+                            <span className="text-base font-bold text-emerald-400 flex items-center gap-1">
+                              ▲ {activeTf.change}
+                            </span>
+                          </div>
+                          <div className="bg-slate-800/80 p-3 rounded-xl border border-slate-700">
+                            <span className="text-[11px] text-slate-400 font-medium block">Market Status</span>
+                            <span className="text-base font-bold text-blue-400">
+                              🟢 Active Mandi
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Chart Area */}
+                        <div className="h-64 w-full">
+                          {activeTf.points && activeTf.points.length > 0 ? (
+                            <ResponsiveContainer width="100%" height="100%">
+                              <AreaChart data={activeTf.points}>
+                                <defs>
+                                  <linearGradient id="priceGradient" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
+                                    <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
+                                  </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.5} />
+                                <XAxis dataKey="time" stroke="#94a3b8" tick={{ fontSize: 11 }} />
+                                <YAxis
+                                  stroke="#94a3b8"
+                                  tick={{ fontSize: 11 }}
+                                  domain={['dataMin - 50', 'dataMax + 50']}
+                                  tickFormatter={(val) => `₹${val}`}
+                                />
+                                <Tooltip
+                                  contentStyle={{
+                                    backgroundColor: '#0f172a',
+                                    borderColor: '#334155',
+                                    borderRadius: '10px',
+                                    color: '#fff',
+                                    boxShadow: '0 10px 25px -5px rgba(0,0,0,0.5)',
+                                  }}
+                                  formatter={(value: any, name: any, item: any) => [
+                                    `₹${Number(value).toLocaleString()} / Quintal (${item?.payload?.volume || ''})`,
+                                    'Mandi Rate',
+                                  ]}
+                                />
+                                <Area
+                                  type="monotone"
+                                  dataKey="price"
+                                  stroke="#10b981"
+                                  strokeWidth={3}
+                                  fillOpacity={1}
+                                  fill="url(#priceGradient)"
+                                  dot={{ fill: '#10b981', r: 4 }}
+                                  activeDot={{ r: 6, fill: '#34d399' }}
+                                />
+                              </AreaChart>
+                            </ResponsiveContainer>
+                          ) : (
+                            <div className="flex items-center justify-center h-full text-slate-400 text-sm">
+                              Loading financial chart...
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
 
                 <div className="space-y-3">

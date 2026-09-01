@@ -85,8 +85,8 @@ export default function Home() {
   return (
     <div className={`${darkMode ? 'bg-gray-900 text-white' : 'bg-green-50 text-gray-900'} min-h-screen flex flex-col justify-between transition-colors duration-300 relative`}>
       
-      {/* Sticky Top Navbar */}
-      <nav className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-green-100'} sticky top-0 z-50 shadow-sm px-6 py-4 flex justify-between items-center max-w-7xl mx-auto w-full border-b backdrop-blur-md bg-opacity-90`}>
+      {/* Sticky Top Navbar - Full Width Edge-to-Edge */}
+      <nav className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-green-100'} sticky top-0 z-50 shadow-sm px-6 py-4 flex justify-between items-center w-full border-b backdrop-blur-md bg-opacity-90`}>
         <div className="flex items-center gap-3">
           <h1 className="text-xl font-bold text-green-600 flex items-center gap-2">{t.brand}</h1>
         </div>
@@ -124,35 +124,57 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* Main Hero & Features Container */}
-      <main className="max-w-6xl mx-auto px-4 py-12 flex-1">
-        
-        {/* Hero Section */}
-        <div className="text-center max-w-4xl mx-auto mb-16">
-          <span className={`inline-block ${darkMode ? 'bg-green-900 text-green-300' : 'bg-green-100 text-green-800'} text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider mb-4`}>
+      {/* Full-Length Hero Section (Edge-to-Edge like Dashboard) */}
+      <section className={`w-full py-16 px-4 md:px-8 border-b ${darkMode ? 'bg-gradient-to-b from-gray-800/80 to-gray-900 border-gray-800' : 'bg-gradient-to-b from-green-100/70 via-green-50/50 to-transparent border-green-100'}`}>
+        <div className="max-w-5xl mx-auto text-center">
+          <span className={`inline-block ${darkMode ? 'bg-green-900/80 text-green-300 border border-green-700' : 'bg-green-100 text-green-800 border border-green-200'} text-xs font-semibold px-4 py-1.5 rounded-full uppercase tracking-wider mb-5 shadow-sm`}>
             {t.badge}
           </span>
-          <h2 className="text-2xl md:text-3xl font-extrabold leading-tight">
+          <h2 className="text-3xl md:text-5xl font-black leading-tight tracking-tight">
             {t.title}
           </h2>
-          <p className={`mt-6 text-lg ${darkMode ? 'text-gray-300' : 'text-gray-600'} max-w-2xl mx-auto`}>
+          <p className={`mt-6 text-lg md:text-xl ${darkMode ? 'text-gray-300' : 'text-gray-600'} max-w-3xl mx-auto leading-relaxed`}>
             {t.description}
           </p>
-          <div className="mt-8 flex justify-center gap-4">
+          <div className="mt-9 flex flex-wrap justify-center gap-4">
             <Link
               href="/signup"
-              className="bg-green-600 text-white px-8 py-3.5 rounded-xl font-bold text-lg hover:bg-green-700 transition shadow-lg"
+              className="bg-green-600 text-white px-8 py-3.5 rounded-xl font-bold text-lg hover:bg-green-700 transition shadow-lg transform hover:-translate-y-0.5"
             >
               {t.getStarted}
             </Link>
             <Link
               href="/login"
-              className={`border ${darkMode ? 'border-green-500 text-green-400 hover:bg-gray-800' : 'border-green-600 text-green-700 hover:bg-green-50'} px-8 py-3.5 rounded-xl font-bold text-lg transition`}
+              className={`border ${darkMode ? 'border-green-500 text-green-400 hover:bg-gray-800' : 'border-green-600 text-green-700 hover:bg-green-50'} px-8 py-3.5 rounded-xl font-bold text-lg transition shadow-sm`}
             >
               {t.signInBtn}
             </Link>
           </div>
+
+          {/* Quick highlights indicator strip */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-12 max-w-4xl mx-auto pt-8 border-t border-green-500/20 text-left">
+            <div className={`p-3.5 rounded-xl ${darkMode ? 'bg-gray-800/60' : 'bg-white/80'} border border-green-500/20 shadow-sm`}>
+              <span className="text-xs text-gray-400 block">Languages</span>
+              <span className="text-sm font-bold text-green-600">English, हिन्दी, తెలుగు</span>
+            </div>
+            <div className={`p-3.5 rounded-xl ${darkMode ? 'bg-gray-800/60' : 'bg-white/80'} border border-green-500/20 shadow-sm`}>
+              <span className="text-xs text-gray-400 block">AI Intelligence</span>
+              <span className="text-sm font-bold text-green-600">ICAR RAG & Voice</span>
+            </div>
+            <div className={`p-3.5 rounded-xl ${darkMode ? 'bg-gray-800/60' : 'bg-white/80'} border border-green-500/20 shadow-sm`}>
+              <span className="text-xs text-gray-400 block">Mandi Prices</span>
+              <span className="text-sm font-bold text-green-600">Live APMC & Trends</span>
+            </div>
+            <div className={`p-3.5 rounded-xl ${darkMode ? 'bg-gray-800/60' : 'bg-white/80'} border border-green-500/20 shadow-sm`}>
+              <span className="text-xs text-gray-400 block">Weather Forecast</span>
+              <span className="text-sm font-bold text-green-600">Live Open-Meteo API</span>
+            </div>
+          </div>
         </div>
+      </section>
+
+      {/* Main Features Grid Container */}
+      <main className="max-w-6xl mx-auto px-4 py-12 flex-1 w-full">
 
         {/* Website Features Section */}
         <div className="grid md:grid-cols-3 gap-8 mt-12">
