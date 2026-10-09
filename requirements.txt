@@ -1,0 +1,1 @@
+-r agri-advisory-system/backend/requirements.txt
