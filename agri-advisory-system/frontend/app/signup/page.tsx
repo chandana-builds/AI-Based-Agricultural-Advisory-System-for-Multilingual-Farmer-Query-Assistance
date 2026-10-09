@@ -117,26 +117,17 @@ export default function SignupPage() {
     }
 
     setLoading(true);
-    const backendHost =
+    const rawBackend =
       process.env.NEXT_PUBLIC_API_URL ||
       'https://ai-based-agricultural-advisory-system-ouyx.onrender.com';
+    const backendHost = rawBackend.replace(/\/+$/, '');
 
     try {
-      // Try direct backend host first, fall back to relative path if CORS/proxy
-      let res: Response;
-      try {
-        res = await fetch(`${backendHost}/auth/signup`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData),
-        });
-      } catch {
-        res = await fetch(`/auth/signup`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData),
-        });
-      }
+      const res = await fetch(`${backendHost}/auth/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
 
       const data = await res.json();
 
