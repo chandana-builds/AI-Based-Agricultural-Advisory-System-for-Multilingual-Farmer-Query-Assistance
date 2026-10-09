@@ -1,23 +1,36 @@
 import type { NextConfig } from "next";
 
+const backendUrl =
+  process.env.BACKEND_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  "https://ai-based-agricultural-advisory-system-ouyx.onrender.com";
+
 const nextConfig: NextConfig = {
   async rewrites() {
     return [
       {
         source: "/chat/:path*",
-        destination: "http://127.0.0.1:8000/chat/:path*",
+        destination: `${backendUrl}/chat/:path*`,
       },
       {
         source: "/user/:path*",
-        destination: "http://127.0.0.1:8000/user/:path*",
+        destination: `${backendUrl}/user/:path*`,
       },
       {
         source: "/auth/:path*",
-        destination: "http://127.0.0.1:8000/auth/:path*",
+        destination: `${backendUrl}/auth/:path*`,
       },
       {
-        source: "/api/:path*",
-        destination: "http://127.0.0.1:8000/api/:path*",
+        source: "/api/chat/:path*",
+        destination: `${backendUrl}/chat/:path*`,
+      },
+      {
+        source: "/api/auth/:path*",
+        destination: `${backendUrl}/auth/:path*`,
+      },
+      {
+        source: "/api/user/:path*",
+        destination: `${backendUrl}/user/:path*`,
       },
     ];
   },

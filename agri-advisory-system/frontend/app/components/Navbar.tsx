@@ -29,7 +29,7 @@ export default function Navbar({ user, lang, setLang, darkMode, setDarkMode }: a
         {user ? (
           <Link href="/dashboard" className="px-4 py-2 bg-green-600 text-white rounded-md">Dashboard</Link>
         ) : (
-          <Link href="/auth" className="px-4 py-2 bg-green-600 text-white rounded-md">Sign In / Sign Up</Link>
+          <Link href="/login" className="px-4 py-2 bg-green-600 text-white rounded-md">Sign In / Sign Up</Link>
         )}
       </div>
     </nav>

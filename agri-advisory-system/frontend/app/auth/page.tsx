@@ -2,8 +2,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-// Use relative URL so Next.js proxy forwards to backend on port 8000
-const API_BASE_URL = "";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  "https://ai-based-agricultural-advisory-system-ouyx.onrender.com";
+
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);

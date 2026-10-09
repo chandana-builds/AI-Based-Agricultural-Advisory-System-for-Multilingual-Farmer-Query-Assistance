@@ -92,10 +92,10 @@ export default function SignupPage() {
 
   // Password validation checks
   const password = formData.password;
-  const hasMinLength = password.length >= 8;
+  const hasMinLength = password.length >= 6;
   const hasUppercase = /[A-Z]/.test(password);
   const hasNumber = /[0-9]/.test(password);
-  const isPasswordValid = hasMinLength && hasUppercase && hasNumber;
+  const isPasswordValid = hasMinLength;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -105,23 +105,38 @@ export default function SignupPage() {
     e.preventDefault();
     setError('');
 
-    if (!isPasswordValid) {
-      setError(t.passwordError);
+    if (password.length < 6) {
+      setError(
+        language === 'hi'
+          ? 'पासवर्ड में कम से कम 6 अक्षर होने चाहिए।'
+          : language === 'te'
+          ? 'పాస్‌వర్డ్‌లో కనీసం 6 అక్షరాలు ఉండాలి.'
+          : 'Password must be at least 6 characters long.'
+      );
       return;
     }
 
     setLoading(true);
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
+    const backendHost =
+      process.env.NEXT_PUBLIC_API_URL ||
+      'https://ai-based-agricultural-advisory-system-ouyx.onrender.com';
 
     try {
-      const res = await fetch(`${apiUrl}/auth/signup`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      }).catch(() => {
-        // Catches network-level connection drops (ERR_CONNECTION_REFUSED)
-        throw new Error('Unable to connect to the server. Please ensure the backend is running.');
-      });
+      // Try direct backend host first, fall back to relative path if CORS/proxy
+      let res: Response;
+      try {
+        res = await fetch(`${backendHost}/auth/signup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData),
+        });
+      } catch {
+        res = await fetch(`/auth/signup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData),
+        });
+      }
 
       const data = await res.json();
 
@@ -135,7 +150,7 @@ export default function SignupPage() {
       // Redirect to the login page upon successful account creation
       router.push('/login');
     } catch (err: any) {
-      setError(err.message || 'Something went wrong');
+      setError(err.message || 'Unable to connect to server. Please check your internet or try again.');
     } finally {
       setLoading(false);
     }
@@ -277,8 +292,8 @@ export default function SignupPage() {
 
           <button
             type="submit"
-            disabled={loading || !isPasswordValid}
-            className="w-full bg-green-600 text-white py-2.5 rounded-lg font-semibold hover:bg-green-700 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={loading}
+            className="w-full bg-green-600 text-white py-2.5 rounded-lg font-semibold hover:bg-green-700 transition duration-200 disabled:opacity-50"
           >
             {loading ? t.creatingAccount : t.signUp}
           </button>

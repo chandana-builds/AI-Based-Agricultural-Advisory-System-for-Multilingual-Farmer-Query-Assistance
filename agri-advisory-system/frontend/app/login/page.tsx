@@ -69,17 +69,25 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
+    const backendHost =
+      process.env.NEXT_PUBLIC_API_URL ||
+      'https://ai-based-agricultural-advisory-system-ouyx.onrender.com';
 
     try {
-      const res = await fetch(`${apiUrl}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      }).catch(() => {
-        // Catches network-level failures like ECONNREFUSED when backend is down
-        throw new Error('Unable to connect to the server. Please ensure the backend is running.');
-      });
+      let res: Response;
+      try {
+        res = await fetch(`${backendHost}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+      } catch {
+        res = await fetch(`/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+      }
 
       const data = await res.json();
 
