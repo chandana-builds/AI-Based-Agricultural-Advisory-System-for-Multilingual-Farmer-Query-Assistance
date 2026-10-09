@@ -49,6 +49,24 @@ app.include_router(chatbot.router, prefix="/chat")
 app.include_router(chatbot.router, prefix="/api/chat")
 
 
+@app.get("/")
+@app.get("/health")
+def root_health():
+    return {
+        "status": "online",
+        "service": "AgriAssist AI Agricultural Advisory Backend",
+        "version": "2.0",
+        "documentation": "/docs",
+        "endpoints": {
+            "chat": "/chat",
+            "login": "/auth/login",
+            "signup": "/auth/signup",
+            "docs": "/docs"
+        }
+    }
+
+
+
 @app.on_event("startup")
 def seed_default_user():
     db = next(get_db())
